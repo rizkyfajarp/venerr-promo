@@ -16,7 +16,7 @@ async function handleRequest(context) {
   }
   
   // CONFIG
-  const BACKEND_URL = 'http://103.196.153.124:5000';
+  const BACKEND_URL = 'http://103.196.153.124:5000/api';
   const BACKEND_SECRET = 'kKCMbTthzs1kNmpKiJpwQEe6v0SAvYMAmwf7dQhNP_I';
   
   // CORS Preflight
