@@ -1330,6 +1330,7 @@
 
     <script>
         const API_BASE = "/api";
+        const NETLIFY_SECRET = 'kKCMbTthzs1kNmpKiJpwQEe6v0SAvYMAmwf7dQhNP_I';
 
         let sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         let isProcessing = false;
@@ -1382,8 +1383,10 @@
                 ...options,
                 headers: {
                     'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true',
                     'Cache-Control': 'no-cache',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    ...(options.headers || {})
                 }
             });
         }

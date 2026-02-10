@@ -19,7 +19,7 @@ export async function onRequest(context) {
   try {
     const body = await request.text();
 
-    const backendRes = await fetch("https://veneer-api.duckdns.org/api/select_lokasi", {
+    const backendRes = await fetch("https://veneer-api.duckdns.org/api/select_payment", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
