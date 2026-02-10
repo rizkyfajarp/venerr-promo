@@ -1384,6 +1384,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                     'ngrok-skip-browser-warning': 'true',
+                    'X-Netlify-Secret': NETLIFY_SECRET,  // ← TAMBAH INI LAGI!
                     'Cache-Control': 'no-cache',
                     'Accept': 'application/json',
                     ...(options.headers || {})
