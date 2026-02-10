@@ -1,28 +1,25 @@
 // ============================================
 // CLOUDFLARE PAGES MIDDLEWARE
-// Handle /api/* proxy ke backend
 // ============================================
 
 export async function onRequest(context) {
+  return handleRequest(context);
+}
+
+async function handleRequest(context) {
   const { request, next } = context;
   const url = new URL(request.url);
   
-  // ============================================
-  // HANYA HANDLE /api/*
-  // ============================================
+  // Skip kalau bukan /api/*
   if (!url.pathname.startsWith('/api/')) {
-    return next(); // Pass ke handler berikutnya (static files)
+    return next();
   }
   
   // CONFIG
   const BACKEND_URL = 'http://103.196.153.124:5000';
   const BACKEND_SECRET = 'kKCMbTthzs1kNmpKiJpwQEe6v0SAvYMAmwf7dQhNP_I';
   
-  console.log(`[MIDDLEWARE] ${request.method} ${url.pathname}`);
-  
-  // ============================================
-  // CORS PREFLIGHT
-  // ============================================
+  // CORS Preflight
   if (request.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
@@ -35,52 +32,52 @@ export async function onRequest(context) {
     });
   }
   
-  // ============================================
-  // PROXY KE BACKEND
-  // ============================================
+  // Build backend URL
   const backendUrl = BACKEND_URL + url.pathname + url.search;
   
+  // Clone headers
   const headers = new Headers(request.headers);
   headers.set('X-Netlify-Secret', BACKEND_SECRET);
   headers.delete('Host');
   
-  console.log(`[MIDDLEWARE] Backend: ${backendUrl}`);
-  
   try {
+    // Clone body
+    let body = null;
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      body = await request.arrayBuffer();
+    }
+    
+    // Forward request
     const backendRequest = new Request(backendUrl, {
       method: request.method,
       headers: headers,
-      body: request.method !== 'GET' && request.method !== 'HEAD' 
-        ? await request.arrayBuffer() 
-        : null,
+      body: body,
     });
     
+    // Fetch from backend
     const response = await fetch(backendRequest);
+    
+    // Clone response
     const responseBody = await response.arrayBuffer();
-    
-    console.log(`[MIDDLEWARE] Status: ${response.status}`);
-    
     const newResponse = new Response(responseBody, {
       status: response.status,
       statusText: response.statusText,
-      headers: response.headers,
+      headers: new Headers(response.headers),
     });
     
-    // Add CORS
+    // Add CORS headers
     newResponse.headers.set('Access-Control-Allow-Origin', '*');
     newResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    newResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, X-Netlify-Secret');
+    newResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, X-Netlify-Secret, ngrok-skip-browser-warning');
     
     return newResponse;
     
   } catch (error) {
-    console.error(`[MIDDLEWARE] Error: ${error.message}`);
-    
     return new Response(
       JSON.stringify({ 
         error: 'Backend unreachable',
         message: error.message,
-        backend_url: backendUrl,
+        backend: BACKEND_URL,
       }), 
       {
         status: 502,
